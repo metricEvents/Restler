@@ -1035,7 +1035,7 @@ class Restler extends EventDispatcher
         foreach ($this->errorClasses as $className) {
             if (method_exists($className, $method)) {
                 $obj = Util::initialize($className);
-                $obj->$method ();
+                $obj->$method($exception->getMessage());
                 $handled = true;
             }
         }
