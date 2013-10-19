@@ -1032,7 +1032,7 @@ class Restler extends EventDispatcher
         foreach ($this->errorClasses as $className) {
             if (method_exists($className, $method)) {
                 $obj = Util::initialize($className);
-                $obj->$method ();
+                $obj->$method($exception->getMessage());
                 $handled = true;
             }
         }
@@ -1354,5 +1354,21 @@ class Restler extends EventDispatcher
                 $postCall
             ), $this->responseData);
         }
+    }
+
+
+    /**
+     * Convenience to call outside Restler
+     */
+    public function formatDataAndRespond($data,$code=null){
+        if(!empty($code)){
+            $this->composeHeaders(new RestException($code));
+        }
+        $this->responseCode = 400;
+        $this->responseData = $this->responseFormat->encode(
+            $data,
+            !$this->productionMode
+        ); 
+        $this->respond();   
     }
 }
