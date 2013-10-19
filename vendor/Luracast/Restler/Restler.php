@@ -1374,20 +1374,4 @@ class Restler extends EventDispatcher
         );
         $this->respond();
     }
-
-
-    /**
-     * Convenience to call outside Restler
-     */
-    public function formatDataAndRespond($data,$code=null){
-        if(!empty($code)){
-            $this->composeHeaders(new RestException($code));
-        }
-        $this->responseCode = 400;
-        $this->responseData = $this->responseFormat->encode(
-            $data,
-            !$this->productionMode
-        );
-        $this->respond();
-    }
 }
