@@ -947,7 +947,10 @@ class Restler extends EventDispatcher
         }
         @header('Cache-Control: ' . $cacheControl);
         @header('Expires: ' . $expires);
-        @header('X-Powered-By: Luracast Restler v' . Restler::VERSION);
+
+        if (Defaults::$poweredByRestlerHeader===true){
+            @header('X-Powered-By: Luracast Restler v' . Restler::VERSION);
+        }
 
         if (Defaults::$crossOriginResourceSharing
             && isset($_SERVER['HTTP_ORIGIN'])
@@ -1032,7 +1035,7 @@ class Restler extends EventDispatcher
         foreach ($this->errorClasses as $className) {
             if (method_exists($className, $method)) {
                 $obj = Util::initialize($className);
-                $obj->$method($exception->getMessage());
+                $obj->$method ();
                 $handled = true;
             }
         }
@@ -1337,7 +1340,7 @@ class Restler extends EventDispatcher
 
     /**
      * post call
-     * 
+     *
      * call _post_{methodName}_{extension} if exists with the composed and
      * serialized (applying the repose format) response data
      *
@@ -1368,7 +1371,23 @@ class Restler extends EventDispatcher
         $this->responseData = $this->responseFormat->encode(
             $data,
             !$this->productionMode
-        ); 
-        $this->respond();   
+        );
+        $this->respond();
+    }
+
+
+    /**
+     * Convenience to call outside Restler
+     */
+    public function formatDataAndRespond($data,$code=null){
+        if(!empty($code)){
+            $this->composeHeaders(new RestException($code));
+        }
+        $this->responseCode = 400;
+        $this->responseData = $this->responseFormat->encode(
+            $data,
+            !$this->productionMode
+        );
+        $this->respond();
     }
 }

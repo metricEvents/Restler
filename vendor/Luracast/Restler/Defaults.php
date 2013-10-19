@@ -147,6 +147,11 @@ class Defaults
     public static $emptyBodyForNullResponse = true;
 
     /**
+     * @var bool Allow hiding implementation of API, suppresses "X-Powered-By: Luracast Restler"
+     */
+    public static $poweredByRestlerHeader = true;
+
+    /**
      * @var bool enables CORS support
      */
     public static $crossOriginResourceSharing = false;
