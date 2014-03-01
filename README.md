@@ -1,3 +1,5 @@
+[![Latest Stable Version](https://poser.pugx.org/luracast/restler/v/stable.png)](https://packagist.org/packages/luracast/restler) [![Total Downloads](https://poser.pugx.org/luracast/restler/downloads.png)](https://packagist.org/packages/luracast/restler) [![Latest Unstable Version](https://poser.pugx.org/luracast/restler/v/unstable.png)](https://packagist.org/packages/luracast/restler) [![License](https://poser.pugx.org/luracast/restler/license.png)](https://packagist.org/packages/luracast/restler)
+
 ![Restler](public/examples/resources/Restler.png) Luracast Restler
 ==================================================================
 ### Version 3.0 Release Candidate 4
@@ -309,12 +311,13 @@ $r->handle(); //serve the response
 
 ### 7. Start Production
 
-By default Restler runs in debug more more fine tuned for API developer, by
+By default Restler runs in debug mode more fine tuned for API developer, by
 showing detailed error messages and prettifying the api result to human readbale
 form
 
 By turning on production mode you will gain some performance boost as it will
-cache the routes and avoid giving out debug information
+cache the routes (comment parsing happens only once instead of every api call),
+few other files and avoid giving out debug information
 
 ```php
 <?php

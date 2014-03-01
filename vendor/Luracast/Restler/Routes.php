@@ -108,6 +108,9 @@ class Routes
                 }
                 if ($type instanceof ReflectionClass) {
                     list($type, $children) = static::getTypeAndModel($type);
+                } elseif($type && is_string($type) && class_exists($type)) {
+                    list($type, $children)
+                        = static::getTypeAndModel(new ReflectionClass($type));
                 }
                 if (isset($type)) {
                     $m['type'] = $type;
@@ -351,7 +354,7 @@ class Routes
                     }
                     $index = intval(substr($k, 1));
                     $details = $value[$httpMethod]['metadata']['param'][$index];
-                    if ($k{0} == 's' || strpos($k, static::typeOf($v)) === 0) {
+                    if ($k{0} == 's' || strpos($k, static::pathVarTypeOf($v)) === 0) {
                         //remove the newlines
                         $data[$details['name']] = trim($v, PHP_EOL);
                     } else {
@@ -404,7 +407,8 @@ class Routes
             ($m = Util::nestedValue($call, 'metadata', 'param', 0)) &&
             !array_key_exists($m['name'], $data) &&
             array_key_exists(Defaults::$fullRequestDataName, $data) &&
-            !is_null($d = $data[Defaults::$fullRequestDataName])
+            !is_null($d = $data[Defaults::$fullRequestDataName]) &&
+            static::typeMatch($m['type'], $d)
         ) {
             $p[0] = $d;
         } else {
@@ -422,7 +426,8 @@ class Routes
                 $bodyParamCount == 1 &&
                 !array_key_exists($lastM['name'], $data) &&
                 array_key_exists(Defaults::$fullRequestDataName, $data) &&
-                !is_null($d = $data[Defaults::$fullRequestDataName])
+                !is_null($d = $data[Defaults::$fullRequestDataName]) &&
+                static::typeMatch($lastM['type'], $d)
             ) {
                 $p[$lastBodyParamIndex] = $d;
             }
@@ -433,15 +438,34 @@ class Routes
     /**
      * @access private
      */
-    protected static function typeOf($var)
+    protected static function pathVarTypeOf($var)
     {
         if (is_numeric($var)) {
             return 'n';
         }
-        if ($var == 'true' || $var == 'false') {
+        if ($var === 'true' || $var === 'false') {
             return 'b';
         }
         return 's';
+    }
+
+    protected static function typeMatch($type, $var)
+    {
+        switch ($type) {
+            case 'boolean':
+            case 'bool':
+                return is_bool($var);
+            case 'array':
+            case 'object':
+                return is_array($var);
+            case 'string':
+            case 'int':
+            case 'integer':
+            case 'float':
+            case 'number':
+                return is_scalar($var);
+        }
+        return true;
     }
 
     /**
@@ -457,14 +481,10 @@ class Routes
         $props = $class->getProperties(ReflectionProperty::IS_PUBLIC);
         foreach ($props as $prop) {
             if ($c = $prop->getDocComment()) {
-                $children[$prop->getName()] = array_merge(
-                    array('name' => $prop->getName()),
-                    Util::nestedValue(
-                        CommentParser::parse($c),
-                        'var'
-                    ),
-                    array('type' => 'string')
-                );
+                $children[$prop->getName()] =
+                    array('name' => $prop->getName()) +
+                    Util::nestedValue(CommentParser::parse($c), 'var') +
+                    array('type' => 'string');
             }
         }
         return array($class->getName(), $children);
@@ -481,7 +501,7 @@ class Routes
     }
 
     /**
-     * Export current routes for caching
+     * Export current routes for cache
      *
      * @return array
      */
